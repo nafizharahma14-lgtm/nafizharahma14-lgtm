@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jelajah IQ - Platform Tes Kecerdasan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .page {
+            display: none;
+            min-height: 100%;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .option-btn {
+            transition: all 0.25s ease;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(8px);
+            border-color: #8b5cf6;
+        }
+
+        .option-btn.selected {
+            border-width: 3px;
+            background-color: #f3e8ff;
+        }
+
+        .option-btn.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            border-width: 3px;
+        }
+
+        .option-btn.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            border-width: 3px;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            animation: slideInRight 0.4s ease-out;
+            max-width: 400px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(500px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pulse-slow {
+            animation: pulseScale 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseScale {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+            animation: fadeInBg 0.3s ease-out;
+        }
+
+        @keyframes fadeInBg {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .progress-bar-animated {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="bg-gray-50"><!-- Navigation Bar -->
+  <nav class="gradient-bg text-white shadow-2xl sticky top-0 z-50">
+   <div class="container mx-auto px-6 py-4">
+    <div class="flex items-center justify-between">
+     <div class="flex items-center gap-3"><span class="text-4xl">🧠</span>
+      <div>
+       <h1 id="nav-title" class="text-2xl font-bold">JELAJAH IQ</h1>
+       <p class="text-xs opacity-90">Platform Tes Kecerdasan</p>
+      </div>
+     </div>
+     <div class="hidden md:flex gap-8 items-center"><a href="#" class="hover:opacity-80 transition font-medium nav-link" data-page="home">Beranda</a> <a href="#" class="hover:opacity-80 transition font-medium nav-link" data-page="categories">Kategori Tes</a> <a href="#" class="hover:opacity-80 transition font-medium nav-link" data-page="history">Riwayat</a> <a href="#" class="hover:opacity-80 transition font-medium nav-link" data-page="about">Tentang</a>
+     </div><button id="mobile-menu-btn" class="md:hidden">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg></button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-3 pb-2"><a href="#" class="block hover:opacity-80 transition nav-link" data-page="home">🏠 Beranda</a> <a href="#" class="block hover:opacity-80 transition nav-link" data-page="categories">📝 Kategori Tes</a> <a href="#" class="block hover:opacity-80 transition nav-link" data-page="history">📊 Riwayat</a> <a href="#" class="block hover:opacity-80 transition nav-link" data-page="about">ℹ️ Tentang</a>
+    </div>
+   </div>
+  </nav><!-- Toast Container -->
+  <div id="toast-container"></div><!-- HOME PAGE -->
+  <div id="home" class="page active">
+   <div class="gradient-bg text-white min-h-screen flex items-center">
+    <div class="container mx-auto px-6 py-20">
+     <div class="text-center max-w-5xl mx-auto fade-in">
+      <div class="text-9xl mb-8 pulse-slow">
+       🧠
+      </div>
+      <h1 id="hero-title" class="text-6xl md:text-8xl font-black mb-6 drop-shadow-2xl">JELAJAH IQ</h1>
+      <p id="hero-subtitle" class="text-3xl md:text-4xl mb-6 opacity-95 font-semibold">Ukur Kecerdasan Anda</p>
+      <p id="hero-description" class="text-xl md:text-2xl mb-12 opacity-85">Platform tes IQ profesional dengan 5 kategori lengkap</p><button id="start-btn" class="bg-white text-purple-700 px-12 py-6 rounded-full text-2xl font-bold hover:scale-110 transition-all shadow-2xl inline-flex items-center gap-3"> <span>Mulai Tes Sekarang</span> <span>→</span> </button>
+     </div><!-- Feature Cards -->
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-20">
+      <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-center border border-white/20">
+       <div class="text-6xl mb-5">
+        📊
+       </div>
+       <h3 class="text-2xl font-bold mb-3">5 Kategori Tes</h3>
+       <p class="opacity-90 text-lg">Logika, Verbal, Spasial, Pengetahuan, Memori</p>
+      </div>
+      <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-center border border-white/20">
+       <div class="text-6xl mb-5">
+        ⏱️
+       </div>
+       <h3 class="text-2xl font-bold mb-3">60 Detik/Soal</h3>
+       <p class="opacity-90 text-lg">Setiap soal memiliki batas waktu</p>
+      </div>
+      <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-center border border-white/20">
+       <div class="text-6xl mb-5">
+        🎯
+       </div>
+       <h3 class="text-2xl font-bold mb-3">Skor IQ Akurat</h3>
+       <p class="opacity-90 text-lg">Hasil berdasarkan standar internasional</p>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- CATEGORIES PAGE -->
+  <div id="categories" class="page">
+   <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 py-20">
+    <div class="container mx-auto px-6">
+     <div class="text-center mb-16 fade-in">
+      <h2 class="text-6xl font-black gradient-text mb-4">Pilih Kategori Tes</h2>
+      <p class="text-2xl text-gray-600">Setiap kategori berisi 10 soal dengan waktu 60 detik per soal</p>
+     </div>
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"><!-- Logika & Penalaran -->
+      <div class="bg-white rounded-3xl shadow-xl p-10 card-hover cursor-pointer category-card border-4 border-transparent hover:border-purple-400" data-category="logika">
+       <div class="text-7xl mb-6 text-center">
+        🔍
+       </div>
+       <h3 class="text-3xl font-bold text-center mb-4 text-gray-800">Logika &amp; Penalaran</h3>
+       <p class="text-gray-600 text-center mb-6 text-lg">Pola angka, silogisme, deduksi logis</p>
+       <div class="text-center"><span class="inline-block bg-purple-100 text-purple-700 px-6 py-3 rounded-full text-base font-bold">10 Soal • 10 Menit</span>
+       </div>
+      </div><!-- Kecerdasan Verbal -->
+      <div class="bg-white rounded-3xl shadow-xl p-10 card-hover cursor-pointer category-card border-4 border-transparent hover:border-blue-400" data-category="verbal">
+       <div class="text-7xl mb-6 text-center">
+        📚
+       </div>
+       <h3 class="text-3xl font-bold text-center mb-4 text-gray-800">Kecerdasan Verbal</h3>
+       <p class="text-gray-600 text-center mb-6 text-lg">Sinonim, antonim, analogi kata</p>
+       <div class="text-center"><span class="inline-block bg-blue-100 text-blue-700 px-6 py-3 rounded-full text-base font-bold">10 Soal • 10 Menit</span>
+       </div>
+      </div><!-- Kecerdasan Spasial -->
+      <div class="bg-white rounded-3xl shadow-xl p-10 card-hover cursor-pointer category-card border-4 border-transparent hover:border-pink-400" data-category="spasial">
+       <div class="text-7xl mb-6 text-center">
+        🎨
+       </div>
+       <h3 class="text-3xl font-bold text-center mb-4 text-gray-800">Kecerdasan Spasial</h3>
+       <p class="text-gray-600 text-center mb-6 text-lg">Pola visual, rotasi, dimensi ruang</p>
+       <div class="text-center"><span class="inline-block bg-pink-100 text-pink-700 px-6 py-3 rounded-full text-base font-bold">10 Soal • 10 Menit</span>
+       </div>
+      </div><!-- Pengetahuan Umum -->
+      <div class="bg-white rounded-3xl shadow-xl p-10 card-hover cursor-pointer category-card border-4 border-transparent hover:border-green-400" data-category="pengetahuan">
+       <div class="text-7xl mb-6 text-center">
+        🌍
+       </div>
+       <h3 class="text-3xl font-bold text-center mb-4 text-gray-800">Pengetahuan Umum</h3>
+       <p class="text-gray-600 text-center mb-6 text-lg">Sains, sejarah, geografi, budaya</p>
+       <div class="text-center"><span class="inline-block bg-green-100 text-green-700 px-6 py-3 rounded-full text-base font-bold">10 Soal • 10 Menit</span>
+       </div>
+      </div><!-- Daya Ingat -->
+      <div class="bg-white rounded-3xl shadow-xl p-10 card-hover cursor-pointer category-card border-4 border-transparent hover:border-yellow-400" data-category="memori">
+       <div class="text-7xl mb-6 text-center">
+        💭
+       </div>
+       <h3 class="text-3xl font-bold text-center mb-4 text-gray-800">Daya Ingat</h3>
+       <p class="text-gray-600 text-center mb-6 text-lg">Memori jangka pendek, urutan, recall</p>
+       <div class="text-center"><span class="inline-block bg-yellow-100 text-yellow-700 px-6 py-3 rounded-full text-base font-bold">10 Soal • 10 Menit</span>
+       </div>
+      </div><!-- Info Card -->
+      <div class="bg-gradient-to-br from-purple-100 via-blue-100 to-pink-100 rounded-3xl shadow-xl p-10 flex flex-col justify-center border-4 border-purple-200">
+       <div class="text-7xl mb-6 text-center">
+        ℹ️
+       </div>
+       <h3 class="text-2xl font-bold text-center mb-6 text-gray-800">Info Penting</h3>
+       <ul class="space-y-3 text-base text-gray-700">
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Daftar dulu sebelum mulai tes</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Setiap soal diberi waktu 60 detik</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Hasil otomatis tersimpan di sheet</span></li>
+        <li class="flex items-start gap-2"><span class="text-green-600 font-bold">✓</span> <span>Lihat riwayat tes kapan saja</span></li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- REGISTRATION MODAL -->
+  <div id="registration-modal" class="hidden fixed inset-0 bg-black/60 modal-overlay z-50 flex items-center justify-center p-4">
+   <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-10 fade-in">
+    <div class="text-center mb-8">
+     <div class="text-7xl mb-5">
+      ✍️
+     </div>
+     <h2 class="text-4xl font-black gradient-text mb-3">Pendaftaran</h2>
+     <p class="text-gray-600 text-lg">Isi data Anda untuk memulai tes</p>
+    </div>
+    <form id="registration-form" class="space-y-6">
+     <div><label for="reg-nama" class="block text-sm font-bold text-gray-700 mb-2">Nama Lengkap</label> <input type="text" id="reg-nama" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-lg" placeholder="Masukkan nama lengkap">
+     </div>
+     <div><label for="reg-email" class="block text-sm font-bold text-gray-700 mb-2">Email</label> <input type="email" id="reg-email" required class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-lg" placeholder="email@example.com">
+     </div>
+     <div><label for="reg-usia" class="block text-sm font-bold text-gray-700 mb-2">Usia</label> <input type="number" id="reg-usia" required min="10" max="100" class="w-full px-5 py-4 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-lg" placeholder="Masukkan usia">
+     </div>
+     <div class="flex gap-4 pt-4"><button type="button" id="cancel-reg" class="flex-1 bg-gray-200 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-300 transition text-lg"> Batal </button> <button type="submit" id="submit-reg" class="flex-1 gradient-bg text-white py-4 rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2 text-lg"> <span>Mulai Tes</span> <span id="submit-spinner" class="spinner hidden"></span> </button>
+     </div>
+    </form>
+   </div>
+  </div><!-- TEST PAGE -->
+  <div id="test" class="page">
+   <div class="min-h-screen bg-gray-50 py-10">
+    <div class="container mx-auto px-6 max-w-5xl"><!-- Progress Header -->
+     <div class="bg-white rounded-3xl shadow-xl p-8 mb-8 sticky top-28 z-40">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+       <div class="text-center md:text-left">
+        <h2 id="test-category" class="text-3xl font-black gradient-text mb-2">Tes Logika</h2>
+        <p id="test-progress" class="text-gray-600 text-lg font-medium">Soal 1 dari 10</p>
+       </div>
+       <div class="text-center bg-purple-50 rounded-2xl px-8 py-4">
+        <div id="timer" class="text-5xl font-black text-purple-600 mb-1">
+         60
+        </div>
+        <div class="text-sm text-gray-600 font-medium">
+         DETIK TERSISA
+        </div>
+       </div>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+       <div id="progress-bar" class="gradient-bg h-4 rounded-full progress-bar-animated" style="width: 10%"></div>
+      </div>
+     </div><!-- Question Card -->
+     <div class="bg-white rounded-3xl shadow-xl p-10 fade-in">
+      <h3 id="question-text" class="text-3xl font-bold text-gray-800 mb-10 leading-relaxed"></h3>
+      <div id="options-container" class="space-y-5"></div>
+      <div class="flex flex-col md:flex-row justify-between gap-4 mt-10 pt-8 border-t-2"><button id="back-btn" class="bg-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold hover:bg-gray-300 transition text-lg"> ← Kembali </button> <button id="next-btn" class="gradient-bg text-white px-10 py-4 rounded-xl font-bold transition text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled> Selanjutnya → </button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- RESULTS PAGE -->
+  <div id="results" class="page">
+   <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 py-16 flex items-center">
+    <div class="container mx-auto px-6 max-w-4xl">
+     <div class="bg-white rounded-3xl shadow-2xl p-12 md:p-16 text-center fade-in">
+      <div class="text-8xl mb-8">
+       🎉
+      </div>
+      <h2 class="text-5xl font-black gradient-text mb-6">Tes Selesai!</h2>
+      <p id="result-category-name" class="text-2xl text-gray-600 mb-10"></p><!-- IQ Score Display -->
+      <div class="bg-gradient-to-br from-purple-100 via-blue-100 to-pink-100 rounded-3xl p-12 mb-10 border-4 border-purple-200">
+       <div class="text-8xl font-black gradient-text mb-3" id="iq-score">
+        120
+       </div>
+       <div class="text-3xl font-bold text-gray-800 mb-3" id="iq-category">
+        Superior
+       </div>
+       <div class="text-xl text-gray-600" id="iq-message">
+        Sangat Baik! 🎓
+       </div>
+      </div><!-- Stats Grid -->
+      <div class="grid grid-cols-3 gap-6 mb-10">
+       <div class="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
+        <div id="result-correct" class="text-4xl font-black text-green-600 mb-2">
+         8
+        </div>
+        <div class="text-base text-gray-700 font-medium">
+         Benar
+        </div>
+       </div>
+       <div class="bg-red-50 rounded-2xl p-6 border-2 border-red-200">
+        <div id="result-wrong" class="text-4xl font-black text-red-600 mb-2">
+         2
+        </div>
+        <div class="text-base text-gray-700 font-medium">
+         Salah
+        </div>
+       </div>
+       <div class="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
+        <div id="result-time" class="text-4xl font-black text-blue-600 mb-2">
+         8m
+        </div>
+        <div class="text-base text-gray-700 font-medium">
+         Waktu
+        </div>
+       </div>
+      </div><!-- Action Buttons -->
+      <div class="flex flex-col md:flex-row gap-5"><button id="result-home" class="flex-1 bg-gray-200 text-gray-800 py-5 rounded-xl font-bold hover:bg-gray-300 transition text-lg"> 🏠 Beranda </button> <button id="result-categories" class="flex-1 gradient-bg text-white py-5 rounded-xl font-bold hover:opacity-90 transition text-lg"> 📝 Coba Lagi </button> <button id="result-history" class="flex-1 bg-purple-100 text-purple-700 py-5 rounded-xl font-bold hover:bg-purple-200 transition text-lg"> 📊 Riwayat </button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- HISTORY PAGE -->
+  <div id="history" class="page">
+   <div class="min-h-screen bg-gray-50 py-20">
+    <div class="container mx-auto px-6">
+     <div class="text-center mb-16 fade-in">
+      <h2 class="text-6xl font-black gradient-text mb-4">Riwayat Tes</h2>
+      <p class="text-2xl text-gray-600">Semua hasil tes yang pernah dilakukan</p>
+     </div>
+     <div id="history-list" class="max-w-5xl mx-auto space-y-6"><!-- History items will be inserted here -->
+     </div>
+     <div id="history-empty" class="hidden max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-16 text-center">
+      <div class="text-8xl mb-8">
+       📭
+      </div>
+      <h3 class="text-4xl font-black text-gray-800 mb-5">Belum Ada Riwayat</h3>
+      <p class="text-gray-600 mb-8 text-xl">Anda belum melakukan tes. Mulai sekarang!</p><button id="history-start" class="gradient-bg text-white px-10 py-5 rounded-xl font-bold hover:opacity-90 text-xl"> Mulai Tes 🚀 </button>
+     </div>
+    </div>
+   </div>
+  </div><!-- ABOUT PAGE -->
+  <div id="about" class="page">
+   <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 py-20">
+    <div class="container mx-auto px-6 max-w-5xl">
+     <div class="text-center mb-16 fade-in">
+      <h2 class="text-6xl font-black gradient-text mb-4">Tentang Tes IQ</h2>
+      <p class="text-2xl text-gray-600">Platform tes kecerdasan profesional</p>
+     </div>
+     <div class="bg-white rounded-3xl shadow-xl p-12 mb-10">
+      <div class="text-center mb-10">
+       <div class="text-8xl mb-6">
+        🧠
+       </div>
+       <h3 class="text-4xl font-bold mb-6">Apa itu Tes IQ?</h3>
+       <p class="text-xl text-gray-600 leading-relaxed">Tes IQ (Intelligence Quotient) adalah pengukuran standar untuk mengevaluasi berbagai aspek kecerdasan manusia. Platform kami menyediakan 5 kategori tes komprehensif yang mencakup Logika &amp; Penalaran, Kecerdasan Verbal, Kecerdasan Spasial, Pengetahuan Umum, dan Daya Ingat.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+       <div class="text-center p-8 bg-purple-50 rounded-2xl">
+        <div class="text-6xl mb-4">
+         🎯
+        </div>
+        <h4 class="text-2xl font-bold mb-3">Akurat</h4>
+        <p class="text-gray-600 text-lg">Berdasarkan standar internasional</p>
+       </div>
+       <div class="text-center p-8 bg-blue-50 rounded-2xl">
+        <div class="text-6xl mb-4">
+         📊
+        </div>
+        <h4 class="text-2xl font-bold mb-3">Komprehensif</h4>
+        <p class="text-gray-600 text-lg">5 kategori lengkap</p>
+       </div>
+       <div class="text-center p-8 bg-pink-50 rounded-2xl">
+        <div class="text-6xl mb-4">
+         💾
+        </div>
+        <h4 class="text-2xl font-bold mb-3">Tersimpan</h4>
+        <p class="text-gray-600 text-lg">Hasil otomatis disimpan</p>
+       </div>
+       <div class="text-center p-8 bg-green-50 rounded-2xl">
+        <div class="text-6xl mb-4">
+         🚀
+        </div>
+        <h4 class="text-2xl font-bold mb-3">Modern</h4>
+        <p class="text-gray-600 text-lg">Interface user-friendly</p>
+       </div>
+      </div>
+     </div>
+     <div class="bg-white rounded-3xl shadow-xl p-12">
+      <h3 class="text-3xl font-bold text-center mb-10">5 Kategori Tes</h3>
+      <div class="space-y-5">
+       <div class="flex gap-6 p-6 bg-purple-50 rounded-2xl border-2 border-purple-200"><span class="text-5xl">🔍</span>
+        <div>
+         <h4 class="text-xl font-bold mb-2">Logika &amp; Penalaran</h4>
+         <p class="text-gray-600">Pola angka, silogisme, pemecahan masalah logis</p>
+        </div>
+       </div>
+       <div class="flex gap-6 p-6 bg-blue-50 rounded-2xl border-2 border-blue-200"><span class="text-5xl">📚</span>
+        <div>
+         <h4 class="text-xl font-bold mb-2">Kecerdasan Verbal</h4>
+         <p class="text-gray-600">Bahasa, sinonim, antonim, analogi kata</p>
+        </div>
+       </div>
+       <div class="flex gap-6 p-6 bg-pink-50 rounded-2xl border-2 border-pink-200"><span class="text-5xl">🎨</span>
+        <div>
+         <h4 class="text-xl font-bold mb-2">Kecerdasan Spasial</h4>
+         <p class="text-gray-600">Visual, rotasi, persepsi ruang</p>
+        </div>
+       </div>
+       <div class="flex gap-6 p-6 bg-green-50 rounded-2xl border-2 border-green-200"><span class="text-5xl">🌍</span>
+        <div>
+         <h4 class="text-xl font-bold mb-2">Pengetahuan Umum</h4>
+         <p class="text-gray-600">Sains, sejarah, geografi, budaya</p>
+        </div>
+       </div>
+       <div class="flex gap-6 p-6 bg-yellow-50 rounded-2xl border-2 border-yellow-200"><span class="text-5xl">💭</span>
+        <div>
+         <h4 class="text-xl font-bold mb-2">Daya Ingat</h4>
+         <p class="text-gray-600">Memori jangka pendek, urutan, recall</p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+        // ============ DEFAULT CONFIG ============
+        const defaultConfig = {
+            judul_utama: "JELAJAH IQ",
+            subjudul: "Ukur Kecerdasan Anda",
+            deskripsi: "Platform tes IQ profesional dengan 5 kategori lengkap",
+            tombol_mulai: "Mulai Tes Sekarang",
+            primary_color: "#667eea",
+            secondary_color: "#764ba2",
+            background_color: "#f9fafb",
+            text_color: "#1f2937"
+        };
+
+        // ============ QUESTION BANKS ============
+        const questions = {
+            logika: [
+                { q: "Jika semua A adalah B, dan semua B adalah C, maka:", o: ["Semua A adalah C", "Semua C adalah A", "Beberapa A adalah C", "Tidak ada yang benar"], a: 0 },
+                { q: "Lanjutkan deret: 2, 6, 12, 20, 30, ...", o: ["40", "42", "44", "48"], a: 1 },
+                { q: "12 : 144 = 15 : ?", o: ["180", "200", "225", "240"], a: 2 },
+                { q: "Jika hari ini Senin, 100 hari lagi adalah hari:", o: ["Senin", "Selasa", "Rabu", "Kamis"], a: 2 },
+                { q: "Deret Fibonacci: 1, 1, 2, 3, 5, 8, 13, ... Angka selanjutnya?", o: ["18", "19", "21", "24"], a: 2 },
+                { q: "Manakah yang tidak termasuk kelompok: Apel, Jeruk, Tomat, Mangga", o: ["Apel", "Jeruk", "Tomat", "Mangga"], a: 2 },
+                { q: "Jika 3 orang menyelesaikan pekerjaan dalam 6 hari, berapa orang untuk 2 hari?", o: ["6", "9", "12", "15"], a: 1 },
+                { q: "5 + 5 × 5 - 5 = ?", o: ["20", "25", "30", "50"], a: 1 },
+                { q: "Manakah angka yang berbeda: 2, 4, 6, 9, 10", o: ["2", "4", "9", "10"], a: 2 },
+                { q: "Jika BUKU = 4, maka KURSI = ?", o: ["4", "5", "6", "7"], a: 1 }
+            ],
+            verbal: [
+                { q: "Sinonim dari kata 'CERDAS' adalah:", o: ["Bodoh", "Pintar", "Lambat", "Malas"], a: 1 },
+                { q: "Antonim dari kata 'OPTIMIS' adalah:", o: ["Pesimis", "Senang", "Gembira", "Bahagia"], a: 0 },
+                { q: "BUKU : MEMBACA = PIANO : ?", o: ["Musik", "Bermain", "Alat", "Suara"], a: 1 },
+                { q: "Kata yang paling dekat artinya dengan 'KOMPREHENSIF':", o: ["Sederhana", "Menyeluruh", "Sebagian", "Terbatas"], a: 1 },
+                { q: "AIR : HAUS = MAKANAN : ?", o: ["Lapar", "Kenyang", "Makan", "Masak"], a: 0 },
+                { q: "DOKTER : RUMAH SAKIT = GURU : ?", o: ["Buku", "Sekolah", "Siswa", "Kelas"], a: 1 },
+                { q: "Lawan kata dari 'KONKRET' adalah:", o: ["Nyata", "Abstrak", "Jelas", "Pasti"], a: 1 },
+                { q: "PANAS : DINGIN = TINGGI : ?", o: ["Rendah", "Besar", "Kecil", "Luas"], a: 0 },
+                { q: "Sinonim dari 'TELITI' adalah:", o: ["Ceroboh", "Cermat", "Cepat", "Lambat"], a: 1 },
+                { q: "MOBIL : RODA = RUMAH : ?", o: ["Pintu", "Jendela", "Atap", "Pondasi"], a: 3 }
+            ],
+            spasial: [
+                { q: "Jika sebuah kotak diputar 90° searah jarum jam, sisi mana yang ada di atas?", o: ["Depan", "Belakang", "Kiri", "Kanan"], a: 3 },
+                { q: "Pola: ■ ○ ▲ ■ ○ ... Bentuk selanjutnya?", o: ["■", "○", "▲", "◆"], a: 2 },
+                { q: "Bayangan cermin dari huruf 'b' adalah:", o: ["b", "d", "p", "q"], a: 1 },
+                { q: "Segitiga diputar 180°, posisinya:", o: ["Sama", "Terbalik", "Miring kiri", "Miring kanan"], a: 1 },
+                { q: "Berapa jumlah sudut pada segi enam?", o: ["4", "5", "6", "8"], a: 2 },
+                { q: "Bentuk 2D dari bola adalah:", o: ["Kotak", "Lingkaran", "Segitiga", "Persegi"], a: 1 },
+                { q: "Jika kubus dibuka, berapa persegi yang terbentuk?", o: ["4", "5", "6", "8"], a: 2 },
+                { q: "Bayangan huruf 'M' di cermin:", o: ["M", "W", "E", "3"], a: 0 },
+                { q: "Objek dirotasi 360°, posisinya:", o: ["Berbeda", "Sama", "Terbalik", "Miring"], a: 1 },
+                { q: "Berapa kubus kecil yang terlihat dari kubus 3x3x3?", o: ["19", "20", "21", "27"], a: 1 }
+            ],
+            pengetahuan: [
+                { q: "Ibu kota Indonesia adalah:", o: ["Bandung", "Surabaya", "Jakarta", "Medan"], a: 2 },
+                { q: "Planet terbesar di tata surya adalah:", o: ["Mars", "Jupiter", "Saturnus", "Neptunus"], a: 1 },
+                { q: "Proklamator kemerdekaan RI adalah:", o: ["Soeharto", "Soekarno & Hatta", "Sudirman", "Diponegoro"], a: 1 },
+                { q: "Benua terbesar di dunia adalah:", o: ["Afrika", "Amerika", "Asia", "Eropa"], a: 2 },
+                { q: "Penemu lampu pijar adalah:", o: ["Tesla", "Edison", "Einstein", "Newton"], a: 1 },
+                { q: "Rumus kimia air adalah:", o: ["CO2", "H2O", "O2", "NaCl"], a: 1 },
+                { q: "Presiden pertama Republik Indonesia:", o: ["Soeharto", "Habibie", "Soekarno", "Megawati"], a: 2 },
+                { q: "Gunung tertinggi di dunia adalah:", o: ["Kilimanjaro", "Everest", "Fuji", "Semeru"], a: 1 },
+                { q: "Hewan tercepat di darat adalah:", o: ["Singa", "Macan", "Cheetah", "Kuda"], a: 2 },
+                { q: "Jumlah provinsi di Indonesia saat ini:", o: ["34", "35", "36", "38"], a: 3 }
+            ],
+            memori: [
+                { q: "Urutan angka: 3, 7, 2, 9, 5. Angka ketiga adalah:", o: ["3", "7", "2", "9"], a: 2 },
+                { q: "Kata: RUMAH, MOBIL, BUKU, KURSI. Kata kedua adalah:", o: ["RUMAH", "MOBIL", "BUKU", "KURSI"], a: 1 },
+                { q: "Warna: MERAH, BIRU, HIJAU, KUNING. Warna pertama:", o: ["MERAH", "BIRU", "HIJAU", "KUNING"], a: 0 },
+                { q: "Angka: 15, 23, 8, 42, 11. Angka terbesar:", o: ["15", "23", "8", "42"], a: 3 },
+                { q: "Nama: ANDI, BUDI, CITRA, DINA. Nama ketiga:", o: ["ANDI", "BUDI", "CITRA", "DINA"], a: 2 },
+                { q: "Huruf: A, F, K, P, U. Huruf kedua:", o: ["A", "F", "K", "P"], a: 1 },
+                { q: "Kota: JAKARTA, BANDUNG, SURABAYA. Kota pertama:", o: ["JAKARTA", "BANDUNG", "SURABAYA", "MEDAN"], a: 0 },
+                { q: "Buah: APEL, JERUK, MANGGA, PISANG, ANGGUR. Buah keempat:", o: ["APEL", "JERUK", "PISANG", "ANGGUR"], a: 2 },
+                { q: "Angka: 100, 75, 50, 25. Angka terkecil:", o: ["100", "75", "50", "25"], a: 3 },
+                { q: "Hari: SENIN, RABU, JUMAT. Hari kedua:", o: ["SENIN", "RABU", "JUMAT", "MINGGU"], a: 1 }
+            ]
+        };
+
+        const categoryNames = {
+            logika: "Logika & Penalaran",
+            verbal: "Kecerdasan Verbal",
+            spasial: "Kecerdasan Spasial",
+            pengetahuan: "Pengetahuan Umum",
+            memori: "Daya Ingat"
+        };
+
+        // ============ STATE VARIABLES ============
+        let allRecords = [];
+        let currentUser = null;
+        let currentCategory = '';
+        let currentIndex = 0;
+        let correctCount = 0;
+        let selectedAnswer = null;
+        let startTime = 0;
+        let timer = null;
+        let timeLeft = 60;
+        let isAnswered = false;
+
+        // ============ NAVIGATION ============
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = link.getAttribute('data-page');
+                showPage(page);
+            });
+        });
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageName).classList.add('active');
+            document.getElementById('mobile-menu').classList.add('hidden');
+
+            if (pageName === 'history') {
+                loadHistory();
+            }
+        }
+
+        // ============ START BUTTONS ============
+        document.getElementById('start-btn').addEventListener('click', () => {
+            showPage('categories');
+        });
+
+        document.getElementById('history-start').addEventListener('click', () => {
+            showPage('categories');
+        });
+
+        // ============ CATEGORY SELECTION ============
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.addEventListener('click', () => {
+                currentCategory = card.getAttribute('data-category');
+                showRegistrationModal();
+            });
+        });
+
+        // ============ REGISTRATION MODAL ============
+        const regModal = document.getElementById('registration-modal');
+        const regForm = document.getElementById('registration-form');
+
+        function showRegistrationModal() {
+            regModal.classList.remove('hidden');
+            regForm.reset();
+        }
+
+        document.getElementById('cancel-reg').addEventListener('click', () => {
+            regModal.classList.add('hidden');
+        });
+
+        regForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const spinner = document.getElementById('submit-spinner');
+            const submitBtn = document.getElementById('submit-reg');
+            
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            currentUser = {
+                nama: document.getElementById('reg-nama').value.trim(),
+                email: document.getElementById('reg-email').value.trim(),
+                usia: parseInt(document.getElementById('reg-usia').value)
+            };
+
+            setTimeout(() => {
+                regModal.classList.add('hidden');
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                startTest();
+            }, 600);
+        });
+
+        // ============ TEST FUNCTIONS ============
+        function startTest() {
+            currentIndex = 0;
+            correctCount = 0;
+            startTime = Date.now();
+            showPage('test');
+            document.getElementById('test-category').textContent = categoryNames[currentCategory];
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= questions[currentCategory].length) {
+                finishTest();
+                return;
+            }
+
+            const q = questions[currentCategory][currentIndex];
+            selectedAnswer = null;
+            isAnswered = false;
+
+            document.getElementById('test-progress').textContent = `Soal ${currentIndex + 1} dari ${questions[currentCategory].length}`;
+            document.getElementById('question-text').textContent = q.q;
+            
+            const progress = ((currentIndex + 1) / questions[currentCategory].length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const labels = ['A', 'B', 'C', 'D'];
+            q.o.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full bg-white border-2 border-gray-300 rounded-2xl p-5 text-left hover:border-purple-500 transition';
+                btn.type = 'button';
+                btn.innerHTML = `
+                    <div class="flex items-center gap-5">
+                        <span class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 text-lg">${labels[idx]}</span>
+                        <span class="text-xl">${opt}</span>
+                    </div>
+                `;
+                btn.addEventListener('click', () => selectAnswer(idx, btn, q.a));
+                container.appendChild(btn);
+            });
+
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = true;
+            
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 60;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = timeLeft;
+            timerEl.classList.remove('text-red-600');
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+
+                if (timeLeft <= 10) {
+                    timerEl.classList.add('text-red-600');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (!isAnswered) {
+                        timeOut();
+                    }
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(idx, btn, correctIdx) {
+            if (isAnswered) return;
+
+            isAnswered = true;
+            selectedAnswer = idx;
+            clearInterval(timer);
+
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (idx === correctIdx) {
+                btn.classList.add('correct');
+                correctCount++;
+            } else {
+                btn.classList.add('incorrect');
+                allBtns[correctIdx].classList.add('correct');
+            }
+
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+        }
+
+        function timeOut() {
+            if (isAnswered) return;
+
+            isAnswered = true;
+            selectedAnswer = -1;
+
+            const q = questions[currentCategory][currentIndex];
+            const allBtns = document.querySelectorAll('.option-btn');
+            
+            allBtns.forEach(b => b.disabled = true);
+            allBtns[q.a].classList.add('correct');
+
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+
+            showToast('⏰ Waktu habis!', 'warning');
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentIndex++;
+            loadQuestion();
+        });
+
+        document.getElementById('back-btn').addEventListener('click', () => {
+            clearInterval(timer);
+            showPage('categories');
+        });
+
+        async function finishTest() {
+            clearInterval(timer);
+
+            const endTime = Date.now();
+            const totalSeconds = Math.floor((endTime - startTime) / 1000);
+            const totalQuestions = questions[currentCategory].length;
+            const wrongCount = totalQuestions - correctCount;
+            const percentage = Math.round((correctCount / totalQuestions) * 100);
+            const iqScore = Math.round(70 + (percentage / 100) * 75);
+
+            const record = {
+                nama: currentUser.nama,
+                email: currentUser.email,
+                usia: currentUser.usia,
+                tanggal_tes: new Date().toISOString(),
+                kategori: currentCategory,
+                nama_kategori: categoryNames[currentCategory],
+                skor: correctCount,
+                total_soal: totalQuestions,
+                skor_iq: iqScore,
+                persentase: percentage,
+                waktu_detik: totalSeconds,
+                benar: correctCount,
+                salah: wrongCount
+            };
+
+            if (window.dataSdk) {
+                const result = await window.dataSdk.create(record);
+                if (result.isOk) {
+                    showToast('✅ Hasil tes berhasil disimpan!', 'success');
+                } else {
+                    showToast('⚠️ Gagal menyimpan hasil', 'error');
+                }
+            }
+
+            showResults(record);
+        }
+
+        function showResults(record) {
+            showPage('results');
+
+            document.getElementById('result-category-name').textContent = `Kategori: ${record.nama_kategori}`;
+            document.getElementById('iq-score').textContent = record.skor_iq;
+
+            let category = '';
+            let message = '';
+            if (record.skor_iq >= 130) {
+                category = 'Sangat Superior';
+                message = 'Luar Biasa! 🌟';
+            } else if (record.skor_iq >= 120) {
+                category = 'Superior';
+                message = 'Sangat Baik! 🎓';
+            } else if (record.skor_iq >= 110) {
+                category = 'Di Atas Rata-rata';
+                message = 'Bagus! 👏';
+            } else if (record.skor_iq >= 90) {
+                category = 'Rata-rata';
+                message = 'Baik! 👍';
+            } else {
+                category = 'Di Bawah Rata-rata';
+                message = 'Terus Berlatih! 💪';
+            }
+
+            document.getElementById('iq-category').textContent = category;
+            document.getElementById('iq-message').textContent = message;
+            document.getElementById('result-correct').textContent = record.benar;
+            document.getElementById('result-wrong').textContent = record.salah;
+            
+            const minutes = Math.floor(record.waktu_detik / 60);
+            const seconds = record.waktu_detik % 60;
+            document.getElementById('result-time').textContent = `${minutes}m ${seconds}s`;
+        }
+
+        document.getElementById('result-home').addEventListener('click', () => {
+            showPage('home');
+        });
+
+        document.getElementById('result-categories').addEventListener('click', () => {
+            showPage('categories');
+        });
+
+        document.getElementById('result-history').addEventListener('click', () => {
+            showPage('history');
+        });
+
+        // ============ HISTORY PAGE ============
+        function loadHistory() {
+            const list = document.getElementById('history-list');
+            const empty = document.getElementById('history-empty');
+
+            if (allRecords.length === 0) {
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            list.innerHTML = '';
+
+            const sorted = [...allRecords].sort((a, b) => new Date(b.tanggal_tes) - new Date(a.tanggal_tes));
+
+            sorted.forEach(rec => {
+                const date = new Date(rec.tanggal_tes);
+                const dateStr = date.toLocaleDateString('id-ID', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                let badgeColor = 'bg-blue-100 text-blue-700';
+                if (rec.skor_iq >= 120) badgeColor = 'bg-green-100 text-green-700';
+                else if (rec.skor_iq >= 110) badgeColor = 'bg-blue-100 text-blue-700';
+                else if (rec.skor_iq >= 90) badgeColor = 'bg-yellow-100 text-yellow-700';
+                else badgeColor = 'bg-red-100 text-red-700';
+
+                const minutes = Math.floor(rec.waktu_detik / 60);
+                const seconds = rec.waktu_detik % 60;
+
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl shadow-lg p-8';
+                card.innerHTML = `
+                    <div class="flex flex-col lg:flex-row justify-between gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-3 flex-wrap">
+                                <h3 class="text-2xl font-bold">${rec.nama_kategori}</h3>
+                                <span class="${badgeColor} px-4 py-2 rounded-full text-base font-bold">IQ: ${rec.skor_iq}</span>
+                            </div>
+                            <p class="text-gray-600 mb-2">👤 ${rec.nama} (${rec.usia} tahun)</p>
+                            <p class="text-gray-600 mb-2">📧 ${rec.email}</p>
+                            <p class="text-gray-600">📅 ${dateStr}</p>
+                        </div>
+                        <div class="flex gap-4 justify-center lg:justify-end">
+                            <div class="text-center bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                                <div class="text-3xl font-black text-purple-600">${rec.skor_iq}</div>
+                                <div class="text-xs text-gray-600 font-medium">Skor IQ</div>
+                            </div>
+                            <div class="text-center bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                                <div class="text-3xl font-black text-green-600">${rec.benar}</div>
+                                <div class="text-xs text-gray-600 font-medium">Benar</div>
+                            </div>
+                            <div class="text-center bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+                                <div class="text-2xl font-black text-blue-600">${minutes}m ${seconds}s</div>
+                                <div class="text-xs text-gray-600 font-medium">Waktu</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // ============ TOAST NOTIFICATION ============
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgColor = 'bg-blue-500';
+            if (type === 'success') bgColor = 'bg-green-500';
+            else if (type === 'error') bgColor = 'bg-red-500';
+            else if (type === 'warning') bgColor = 'bg-yellow-500';
+            
+            toast.className = `toast ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl font-medium`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(500px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ============ DATA SDK INITIALIZATION ============
+        const dataHandler = {
+            onDataChanged(data) {
+                allRecords = data;
+                if (document.getElementById('history').classList.contains('active')) {
+                    loadHistory();
+                }
+            }
+        };
+
+        if (window.dataSdk) {
+            window.dataSdk.init(dataHandler);
+        }
+
+        // ============ ELEMENT SDK INITIALIZATION ============
+        async function onConfigChange(config) {
+            const navTitle = document.getElementById('nav-title');
+            const heroTitle = document.getElementById('hero-title');
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            const heroDescription = document.getElementById('hero-description');
+            const startBtn = document.getElementById('start-btn');
+
+            if (navTitle) navTitle.textContent = (config.judul_utama || defaultConfig.judul_utama).toUpperCase();
+            if (heroTitle) heroTitle.textContent = config.judul_utama || defaultConfig.judul_utama;
+            if (heroSubtitle) heroSubtitle.textContent = config.subjudul || defaultConfig.subjudul;
+            if (heroDescription) heroDescription.textContent = config.deskripsi || defaultConfig.deskripsi;
+            if (startBtn) {
+                const btnText = config.tombol_mulai || defaultConfig.tombol_mulai;
+                startBtn.innerHTML = `<span>${btnText}</span><span>→</span>`;
+            }
+
+            const primaryColor = config.primary_color || defaultConfig.primary_color;
+            const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+            const bgColor = config.background_color || defaultConfig.background_color;
+            const textColor = config.text_color || defaultConfig.text_color;
+
+            document.body.style.backgroundColor = bgColor;
+            document.body.style.color = textColor;
+
+            document.querySelectorAll('.gradient-bg').forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+            });
+
+            document.querySelectorAll('.gradient-text').forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+                el.style.webkitBackgroundClip = 'text';
+                el.style.webkitTextFillColor = 'transparent';
+                el.style.backgroundClip = 'text';
+            });
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities: (config) => ({
+                    recolorables: [
+                        {
+                            get: () => config.primary_color || defaultConfig.primary_color,
+                            set: (v) => {
+                                config.primary_color = v;
+                                window.elementSdk.setConfig({ primary_color: v });
+                            }
+                        },
+                        {
+                            get: () => config.secondary_color || defaultConfig.secondary_color,
+                            set: (v) => {
+                                config.secondary_color = v;
+                                window.elementSdk.setConfig({ secondary_color: v });
+                            }
+                        },
+                        {
+                            get: () => config.background_color || defaultConfig.background_color,
+                            set: (v) => {
+                                config.background_color = v;
+                                window.elementSdk.setConfig({ background_color: v });
+                            }
+                        },
+                        {
+                            get: () => config.text_color || defaultConfig.text_color,
+                            set: (v) => {
+                                config.text_color = v;
+                                window.elementSdk.setConfig({ text_color: v });
+                            }
+                        }
+                    ],
+                    borderables: [],
+                    fontEditable: undefined,
+                    fontSizeable: undefined
+                }),
+                mapToEditPanelValues: (config) => new Map([
+                    ["judul_utama", config.judul_utama || defaultConfig.judul_utama],
+                    ["subjudul", config.subjudul || defaultConfig.subjudul],
+                    ["deskripsi", config.deskripsi || defaultConfig.deskripsi],
+                    ["tombol_mulai", config.tombol_mulai || defaultConfig.tombol_mulai]
+                ])
+            });
+
+            onConfigChange(window.elementSdk.config);
+        }
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a1482fc81d7145b',t:'MTc2MzYwNTY4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
